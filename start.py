@@ -4,11 +4,12 @@ import os
 from openai import OpenAI
 from playsound import playsound # attention: pip install playsound==1.2.2
 from datetime import datetime
+import speech_recognition as sr
 
 # Ici c'est notre clé top secrète pour appeler ChatGPT.  
 # C'est comme si on avait rentré notre nom d'utilisateur et notre mot de passe.
 # N'importe qui qui a cette clé là peut utiliser notre compte et c'est nous qui sommes facturé.
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="sk-")
 
 # Ça c'est juste pour bien debuger, pour nous permettre de faire un nouveau sous répertoire à chaque expérience
 # On va mettre tous nos fichiers dedans pour les retrouver facilement
@@ -16,23 +17,54 @@ datetime_folder = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 experiment_folder = os.path.join("experiments", datetime_folder)
 os.mkdir(experiment_folder)
 
+def listen_and_transcribe():
+    # Initialize recognizer
+    recognizer = sr.Recognizer()
+
+    text = ""
+
+    # Start listening
+    with sr.Microphone() as source:
+        print("Listening... Say 'STOP' to end.")
+        recognizer.adjust_for_ambient_noise(source)
+        while True:
+            # Listen for audio
+            audio = recognizer.listen(source)
+
+            try:
+                # Perform STT
+                text = text + " " + recognizer.recognize_google(audio, language="fr-FR")
+                print(f"Recognized: {text}")
+
+                # Check if the keyword 'STOP' is in the recognized text
+                if "STOP" in text.upper():
+                    print("Stopping...")
+                    return text.split("stop")[0]
+                    break
+
+            except sr.UnknownValueError:
+                print("Could not understand audio")
+            except sr.RequestError as e:
+                print(f"Could not request results; {e}")
+
 # Maintenant, premier concept quand on parle à ChatGPT.  On fait des "PROMPTs", c'est à dire des messages.
 # On va se faire une liste de message que l'on s'échange.  En gros ce sont les messages de ChatGPT, les miens, ChatGPT, les miens, ...
 # Dans le langage de ChatGPT, quand ça vient de ChatGPT on va dire que le role=assistant et quand ça vient de l'utilisateur c'est role=user
-PROMPTs = []
+prompts = []
 
 # Mais notre liste, on va toujours la commencer par des messages "SYSTEM" qui expliquent à ChatGPT c'est quoi son rôle, ce qu'il peut faire
 # et ce qu'il ne peut pas faire.  Comment il s'appelle... c'est toute sa personalité et son information de base qui est là dedans.
 prompt_System = []
 prompt_System.append("Ton nom est Elis.")
-prompt_System.append("Tu es une peluche en forme d'oursons.")
+prompt_System.append("Tu es une peluche en forme d'ourson.")
 prompt_System.append("Tu donnes toutes tes réponses en français.")
 prompt_System.append("Tu t'adresses à un enfant de 5 ans.")
 prompt_System.append("Tes réponses sont simples, amusantes, appropriées, bienveillantes et engagentes pour un enfant de 5 ans.")
+prompt_System.append("Tes réponses ont moins de 100 mots au maximum, sans exception.")
 prompt_System.append("Tu ne fais pas de reproches.")
 prompt_System.append("Tu veux jouer avec l'enfant.")
 prompt_System.append("Tu habites au Québec et tes référents sont Québecois.")
-prompt_System.append("Tu ne l'encourages pas à être vulgaire, mais tu comprends que c'est un enfant et tu essaie de ramener la conversation sur un ton positive en comprenant quand même son intention.")
+prompt_System.append("Tu ne l'encourages pas à être vulgaire, mais tu comprends que c'est un enfant et tu essaie de ramener la conversation sur un ton positif en comprenant quand même son intention.")
 prompt_System.append("Tu ne réponds pas que tu es un agent conversationnel, une intellligence artificielle ou une autre variante du même genre.")
 
 # Et on va commencer av
@@ -50,7 +82,7 @@ while shouldContinue:
 
     # Et l'ajouter à la liste des messages (les PROMPTs) que l'on c'est échangé
     # On se souvient: le role assistant c'est quand c'est la réponse de ChatGPT
-    PROMPTs.append({"role": "assistant", "content": answer})
+    prompts.append({"role": "assistant", "content": answer})
     print()
 
 
@@ -65,17 +97,20 @@ while shouldContinue:
         )
     
     # Puis on va se faire un fichier où tout enregistrer ce son là dans notre répertoire spéciale fait au début
-    filename = os.path.join(experiment_folder, str(len(PROMPTs)).zfill(4) + "-answer.mp3")
+    filename = os.path.join(experiment_folder, str(len(prompts)).zfill(4) + "-answer.mp3")
     response.stream_to_file(filename)
     
     # Et on va le faire jouer pour l'entendre dans le haut parleur
     playsound(filename)
 
     # Maintenant, c'est le temps de demander à l'enfant ce qu'il veut dire
-    question = input("enfant> ")
+    # question = input("enfant> ")
+    print("## écoute l'enfant au micro ##")
+    question = listen_and_transcribe();
+    print("enfant> " + question)
 
     # Que l'on va ajouter à notre liste de "PROMPTs" avec le role user.
-    PROMPTs.append({"role": "user", "content": question })
+    prompts.append({"role": "user", "content": question })
     print()
 
     # C'est ici qu'on regarde si la réponse que l'on a eu c'est "quit" pour mettre fin à notre discussion
@@ -92,7 +127,7 @@ while shouldContinue:
             gpt_messages.append({ "role": "system", "content": system_instruction })
         
         # Puis on va ajouter les messages de assistant et de user dans la liste des PROMPTs.
-        for prompt in PROMPTs:
+        for prompt in prompts:
             gpt_messages.append(prompt)
 
         # ...et c'est ici que l'on va aller demander à ChatGPT de prendre tous ces PROMPTs de notre conversations 
