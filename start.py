@@ -25,8 +25,9 @@ def listen_and_transcribe():
 
     # Start listening
     with sr.Microphone() as source:
-        print("Listening... Say 'STOP' to end.")
+        print("Adjusting ambient noise.")
         recognizer.adjust_for_ambient_noise(source)
+        print("Listening... Say 'STOP' to end.")
         while True:
             # Listen for audio
             audio = recognizer.listen(source)
