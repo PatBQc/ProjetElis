@@ -5,139 +5,160 @@ from openai import OpenAI
 from playsound import playsound # attention: pip install playsound==1.2.2
 from datetime import datetime
 import speech_recognition as sr
+import re
+import asyncio
 
-# Ici c'est notre clé top secrète pour appeler ChatGPT.  
-# C'est comme si on avait rentré notre nom d'utilisateur et notre mot de passe.
-# N'importe qui qui a cette clé là peut utiliser notre compte et c'est nous qui sommes facturé.
-client = OpenAI(api_key="sk-")
+async def main():
 
-# Ça c'est juste pour bien debuger, pour nous permettre de faire un nouveau sous répertoire à chaque expérience
-# On va mettre tous nos fichiers dedans pour les retrouver facilement
-datetime_folder = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-experiment_folder = os.path.join("experiments", datetime_folder)
-os.mkdir(experiment_folder)
+    # Ici c'est notre clé top secrète pour appeler ChatGPT.  
+    # C'est comme si on avait rentré notre nom d'utilisateur et notre mot de passe.
+    # N'importe qui qui a cette clé là peut utiliser notre compte et c'est nous qui sommes facturé.
+    client = OpenAI(api_key="sk-")
 
-def listen_and_transcribe():
-    # Initialize recognizer
-    recognizer = sr.Recognizer()
+    # Ça c'est juste pour bien debuger, pour nous permettre de faire un nouveau sous répertoire à chaque expérience
+    # On va mettre tous nos fichiers dedans pour les retrouver facilement
+    datetime_folder = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    experiment_folder = os.path.join("experiments", datetime_folder)
+    os.mkdir(experiment_folder)
 
-    text = ""
+    def listen_and_transcribe():
+        # Initialize recognizer
+        recognizer = sr.Recognizer()
 
-    # Start listening
-    with sr.Microphone() as source:
-        print("Adjusting ambient noise.")
-        recognizer.adjust_for_ambient_noise(source)
-        print("Listening... Say 'STOP' to end.")
-        while True:
-            # Listen for audio
-            audio = recognizer.listen(source)
+        text = ""
 
-            try:
-                # Perform STT
-                text = text + " " + recognizer.recognize_google(audio, language="fr-FR")
-                print(f"Recognized: {text}")
+        # Start listening
+        with sr.Microphone() as source:
+            print("Adjusting ambient noise.")
+            recognizer.adjust_for_ambient_noise(source)
+            print("Listening... Say 'STOP' to end.")
+            while True:
+                # Listen for audio
+                audio = recognizer.listen(source)
 
-                # Check if the keyword 'STOP' is in the recognized text
-                if "STOP" in text.upper():
-                    print("Stopping...")
-                    return text.split("stop")[0]
-                    break
+                try:
+                    # Perform STT
+                    text = text + " " + recognizer.recognize_google(audio, language="fr-FR")
+                    print(f"Recognized: {text}")
 
-            except sr.UnknownValueError:
-                print("Could not understand audio")
-            except sr.RequestError as e:
-                print(f"Could not request results; {e}")
+                    # Check if the keyword 'STOP' is in the recognized text
+                    if "STOP" in text.upper():
+                        print("Stopping...")
+                        return text.split("stop")[0]
+                        break
 
-# Maintenant, premier concept quand on parle à ChatGPT.  On fait des "PROMPTs", c'est à dire des messages.
-# On va se faire une liste de message que l'on s'échange.  En gros ce sont les messages de ChatGPT, les miens, ChatGPT, les miens, ...
-# Dans le langage de ChatGPT, quand ça vient de ChatGPT on va dire que le role=assistant et quand ça vient de l'utilisateur c'est role=user
-prompts = []
+                except sr.UnknownValueError:
+                    print("Could not understand audio")
+                except sr.RequestError as e:
+                    print(f"Could not request results; {e}")
 
-# Mais notre liste, on va toujours la commencer par des messages "SYSTEM" qui expliquent à ChatGPT c'est quoi son rôle, ce qu'il peut faire
-# et ce qu'il ne peut pas faire.  Comment il s'appelle... c'est toute sa personalité et son information de base qui est là dedans.
-prompt_System = []
-prompt_System.append("Ton nom est Elis.")
-prompt_System.append("Tu es une peluche en forme d'ourson.")
-prompt_System.append("Tu donnes toutes tes réponses en français.")
-prompt_System.append("Tu t'adresses à un enfant de 5 ans.")
-prompt_System.append("Tes réponses sont simples, amusantes, appropriées, bienveillantes et engagentes pour un enfant de 5 ans.")
-prompt_System.append("Tes réponses ont moins de 100 mots au maximum, sans exception.")
-prompt_System.append("Tu ne fais pas de reproches.")
-prompt_System.append("Tu veux jouer avec l'enfant.")
-prompt_System.append("Tu habites au Québec et tes référents sont Québecois.")
-prompt_System.append("Tu ne l'encourages pas à être vulgaire, mais tu comprends que c'est un enfant et tu essaie de ramener la conversation sur un ton positif en comprenant quand même son intention.")
-prompt_System.append("Tu ne réponds pas que tu es un agent conversationnel, une intellligence artificielle ou une autre variante du même genre.")
+    # Maintenant, premier concept quand on parle à ChatGPT.  On fait des "PROMPTs", c'est à dire des messages.
+    # On va se faire une liste de message que l'on s'échange.  En gros ce sont les messages de ChatGPT, les miens, ChatGPT, les miens, ...
+    # Dans le langage de ChatGPT, quand ça vient de ChatGPT on va dire que le role=assistant et quand ça vient de l'utilisateur c'est role=user
+    prompts = []
 
-# Et on va commencer av
-answer = "Bonjour mon ami! Je suis là pour toi: que veux-tu faire?"
+    # Mais notre liste, on va toujours la commencer par des messages "SYSTEM" qui expliquent à ChatGPT c'est quoi son rôle, ce qu'il peut faire
+    # et ce qu'il ne peut pas faire.  Comment il s'appelle... c'est toute sa personalité et son information de base qui est là dedans.
+    prompt_System = []
+    prompt_System.append("Ton nom est Elis.")
+    prompt_System.append("Tu es une peluche en forme d'ourson.")
+    prompt_System.append("Tu donnes toutes tes réponses en français.")
+    prompt_System.append("Tu t'adresses à un enfant de 5 ans.")
+    prompt_System.append("Tes réponses sont simples, amusantes, appropriées, bienveillantes et engagentes pour un enfant de 5 ans.")
+    prompt_System.append("Tes réponses ont moins de 100 mots au maximum, sans exception.")
+    prompt_System.append("Tu ne fais pas de reproches.")
+    prompt_System.append("Tu veux jouer avec l'enfant.")
+    prompt_System.append("Tu reçois tes questions par la voix et tu les donnes aussi par la voix, donc tu ne fais pas de référence à écrire quelque chose pour communiquer avec toi.")
+    prompt_System.append("Tu habites au Québec et tes référents sont Québecois.")
+    prompt_System.append("Tu ne l'encourages pas à être vulgaire, mais tu comprends que c'est un enfant et tu essaie de ramener la conversation sur un ton positif en comprenant quand même son intention.")
+    prompt_System.append("Tu ne réponds pas que tu es un agent conversationnel, une intellligence artificielle ou une autre variante du même genre.")
 
-# On va se garder une variable pour savoir si on doit continuer notre discussion ou arrêter
-# Pour arrêter, c'est d'écrire "quit" comme réponse de notre part quand c'est à nous d'écrire
-shouldContinue = True
+    # Et on va commencer av
+    answer = "Bonjour mon ami! Je suis là pour toi: que veux-tu faire?"
 
-# Et ici c'est notre boucle... tant que la variable "souldContinue" nous dit de continuer... et bien on va continuer
-while shouldContinue:
+    # On va se garder une variable pour savoir si on doit continuer notre discussion ou arrêter
+    # Pour arrêter, c'est d'écrire "quit" comme réponse de notre part quand c'est à nous d'écrire
+    shouldContinue = True
 
-    # On va afficher à l'écran ce que dit Elis
-    print("ELIS> " + answer)
+    # Et ici c'est notre boucle... tant que la variable "souldContinue" nous dit de continuer... et bien on va continuer
+    while shouldContinue:
 
-    # Et l'ajouter à la liste des messages (les PROMPTs) que l'on c'est échangé
-    # On se souvient: le role assistant c'est quand c'est la réponse de ChatGPT
-    prompts.append({"role": "assistant", "content": answer})
-    print()
+        # On va afficher à l'écran ce que dit Elis
+        print("ELIS> " + answer)
 
+        # Et l'ajouter à la liste des messages (les PROMPTs) que l'on c'est échangé
+        # On se souvient: le role assistant c'est quand c'est la réponse de ChatGPT
+        prompts.append({"role": "assistant", "content": answer})
+        print()
 
-    # Ici c'est le code pour transformer le texte en son.  On appelle ça du TTS (text-to-speech)
-    # On va prendre la dernière chose que nous a dit ChatGPT et on va demander à un site web de OpenAI
-    # de nous le convertir dans un fichier audio, comme un fichier mp3
-    response = client.audio.speech.create(
-        model="tts-1",
-        voice="echo",
-        response_format="mp3",
-        input=answer
-        )
-    
-    # Puis on va se faire un fichier où tout enregistrer ce son là dans notre répertoire spéciale fait au début
-    filename = os.path.join(experiment_folder, str(len(prompts)).zfill(4) + "-answer.mp3")
-    response.stream_to_file(filename)
-    
-    # Et on va le faire jouer pour l'entendre dans le haut parleur
-    playsound(filename)
+        split_answers = re.findall(r'[^.!?]*[.!?]', answer)
 
-    # Maintenant, c'est le temps de demander à l'enfant ce qu'il veut dire
-    # question = input("enfant> ")
-    print("## écoute l'enfant au micro ##")
-    question = listen_and_transcribe();
-    print("enfant> " + question)
+        answer_part_index = 0
 
-    # Que l'on va ajouter à notre liste de "PROMPTs" avec le role user.
-    prompts.append({"role": "user", "content": question })
-    print()
+        task_player = asyncio.sleep(0)
 
-    # C'est ici qu'on regarde si la réponse que l'on a eu c'est "quit" pour mettre fin à notre discussion
-    shouldContinue = question != "quit"
+        for answer_part in split_answers:
+            # Ici c'est le code pour transformer le texte en son.  On appelle ça du TTS (text-to-speech)
+            # On va prendre la dernière chose que nous a dit ChatGPT et on va demander à un site web de OpenAI
+            # de nous le convertir dans un fichier audio, comme un fichier mp3
+            response = client.audio.speech.create(
+                model="tts-1",
+                voice="echo",
+                response_format="mp3",
+                input=answer_part
+                )
 
-    # Et justement, si on n'est pas entrain d'arrêter, alors on continu !
-    if shouldContinue:
-
-        # En commençant par tout mettre nos PROMPTs ensemble pour les envoyer à ChatGPT et lui demander sa réponse
-        gpt_messages = []
-
-        # On va commencer par mettre nos messages "system" au début de nos PROMPTs
-        for system_instruction in prompt_System:
-            gpt_messages.append({ "role": "system", "content": system_instruction })
+            # Puis on va se faire un fichier où tout enregistrer ce son là dans notre répertoire spéciale fait au début
+            filename = os.path.join(experiment_folder, str(len(prompts)).zfill(4) + "-answer (" + str(answer_part_index).zfill(2) + ").mp3")
+            response.stream_to_file(filename)
         
-        # Puis on va ajouter les messages de assistant et de user dans la liste des PROMPTs.
-        for prompt in prompts:
-            gpt_messages.append(prompt)
+            await task_player
 
-        # ...et c'est ici que l'on va aller demander à ChatGPT de prendre tous ces PROMPTs de notre conversations 
-        # ...et nous dire c'est quoi le prochain bon message !
-        gpt_client = client.chat.completions.create(
-            #model="gpt-3.5-turbo", 
-            model="gpt-4-1106-preview",
-            messages=gpt_messages
-        )
+            # Et on va le faire jouer pour l'entendre dans le haut parleur
+            task_player = asyncio.create_task(asyncio.to_thread(playsound, filename))
+            await asyncio.sleep(0)
+            
 
-        # On met la réponse de ChatGPR dans la variable "answer", et on va ensuite recommencer notre boucle !
-        answer = gpt_client.choices[0].message.content
+            answer_part_index += 1
+
+        await task_player
+
+        # Maintenant, c'est le temps de demander à l'enfant ce qu'il veut dire
+        # question = input("enfant> ")
+        print("## écoute l'enfant au micro ##")
+        question = listen_and_transcribe();
+        print("enfant> " + question)
+
+        # Que l'on va ajouter à notre liste de "PROMPTs" avec le role user.
+        prompts.append({"role": "user", "content": question })
+        print()
+
+        # C'est ici qu'on regarde si la réponse que l'on a eu c'est "quit" pour mettre fin à notre discussion
+        shouldContinue = question != "quit"
+
+        # Et justement, si on n'est pas entrain d'arrêter, alors on continu !
+        if shouldContinue:
+
+            # En commençant par tout mettre nos PROMPTs ensemble pour les envoyer à ChatGPT et lui demander sa réponse
+            gpt_messages = []
+
+            # On va commencer par mettre nos messages "system" au début de nos PROMPTs
+            for system_instruction in prompt_System:
+                gpt_messages.append({ "role": "system", "content": system_instruction })
+            
+            # Puis on va ajouter les messages de assistant et de user dans la liste des PROMPTs.
+            for prompt in prompts:
+                gpt_messages.append(prompt)
+
+            # ...et c'est ici que l'on va aller demander à ChatGPT de prendre tous ces PROMPTs de notre conversations 
+            # ...et nous dire c'est quoi le prochain bon message !
+            gpt_client = client.chat.completions.create(
+                #model="gpt-3.5-turbo", 
+                model="gpt-4-1106-preview",
+                messages=gpt_messages
+            )
+
+            # On met la réponse de ChatGPR dans la variable "answer", et on va ensuite recommencer notre boucle !
+            answer = gpt_client.choices[0].message.content
+
+asyncio.run(main())
