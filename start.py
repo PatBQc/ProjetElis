@@ -48,6 +48,9 @@ async def main():
             # Et maintenant, on commence la vrai saissie pour écouter ce qui se dit et le convertir en texte.
             print("En écoute... Dites 'STOP' pour finir ce que vous avez à dire.")
 
+            # Gardons une variable pour savoir nous en sommes où dans l'écoute de nos segments
+            audio_part_index = 0
+
             # On va faire une boucle qui va prendre chaque "segment" de conversation et les reconnaître, tant que
             # nous n'avons pas entendu "STOP".  Un segment, c'est quand quelqu'un fait une pause en parlant...
             # ...et à chaque fois qu'il y a une pause, on en profite pour convertir ce qu'on vient d'entendre en texte
@@ -55,6 +58,12 @@ async def main():
                 
                 # On se met en mode écoute du microphone
                 audio = recognizer.listen(source)
+
+                # On va enregistrer l'audio entendu dans un fichier de notre répertoire d'expériences
+                filename = os.path.join(experiment_folder, str(len(prompts)).zfill(4) + "-kid (" + str(audio_part_index).zfill(2) + ").wav")
+                with open(filename, "wb") as file:
+                    file.write(audio.get_wav_data())
+                audio_part_index += 1
 
                 # Puis on essaie de reconnaître ce qui a été dit.  
                 try:
@@ -153,7 +162,7 @@ async def main():
                 )
 
             # Puis on va se faire un fichier où tout enregistrer ce son là dans notre répertoire spéciale fait au début
-            filename = os.path.join(experiment_folder, str(len(prompts)).zfill(4) + "-answer (" + str(answer_part_index).zfill(2) + ").mp3")
+            filename = os.path.join(experiment_folder, str(len(prompts)).zfill(4) + "-Elis (" + str(answer_part_index).zfill(2) + ").mp3")
             response.stream_to_file(filename)
         
             # Maintenant que l'on a reçu notre réponse de l'audio de la prochaine phrase, on va attendre "await"
@@ -171,8 +180,11 @@ async def main():
         await task_player
 
         # Maintenant, c'est le temps de demander à l'enfant ce qu'il veut dire
+
+        # Choix 1: Code pour écrire la réponse de l'enfant.
         # question = input("enfant> ")
-        print("## écoute l'enfant au micro ##")
+
+        # Choix 2: Code pour écouter le micro plutôt que le clavier.
         question = listen_and_transcribe();
         print("enfant> " + question)
 
