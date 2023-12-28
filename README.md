@@ -1,5 +1,5 @@
 # ProjetElis
-Projet pour le ExpoScience de Vincent
+Projet pour le ExpoScience de @BelangerVincent et Attis
 
 # Pour installer
 ```
