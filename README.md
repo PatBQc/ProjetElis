@@ -8,5 +8,7 @@ cd ProjetElis
 pip install openai
 pip install playsound==1.2.2
 pip install SpeechRecognition
+sudo apt install python3-gst-1.0
 mkdir experiments
+python start.py
 ```
