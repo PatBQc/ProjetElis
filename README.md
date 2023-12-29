@@ -1,7 +1,9 @@
 # ProjetElis
 Projet pour le ExpoScience de @BelangerVincent et Attis.
 
-Pour le moment, vous pouvez consulter [notre documentation papier scané en PDF](docs/2023-11-21 - Projet Mon ami Élis (Elis, ELI5) - Vincent Exposcience CSB.pdf) en attendant une meilleure documentation ici ;)
+Pour le moment, vous pouvez consulter [notre documentation papier scané en PDF](docs/2023-11-21%20-%20Projet%20Mon%20ami%20Élis%20(Elis%2C%20ELI5)%20-%20Vincent%20Exposcience%20CSB.pdf) en attendant une meilleure documentation ici ;)
+
+
 
 # Pour installer
 ```
