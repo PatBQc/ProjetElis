@@ -8,6 +8,21 @@ import speech_recognition as sr
 import re
 import asyncio
 
+# Permet de changer les couleurs du texte dans le terminal
+class bcolors:
+    ELIS = '\033[94m'
+    ENFANT = '\033[92m'
+    SYSTEM = '\033[96m'
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 # On a ajouté une fonction main() "asynchrone"
 # Par convention, c'est comme ça que l'on appelle la fonction qui sera appelé au démarage de l'application.
 # La fonction principale, c'est donc la fonction "main".
@@ -42,11 +57,11 @@ async def main():
             
             # Avec notre micro, on va commencer par "écouter" le son ambiant pour faire en sorte que lorsque
             # l'on parle, on est capable de reconnaître la voix de tous les bruits de fond.
-            print("Ajustement du son ambiant.")
+            print(bcolors.SYSTEM + "  Sys: Ajustement du son ambiant." + bcolors.ENDC)
             recognizer.adjust_for_ambient_noise(source)
 
             # Et maintenant, on commence la vrai saissie pour écouter ce qui se dit et le convertir en texte.
-            print("En écoute... Dites 'STOP' pour finir ce que vous avez à dire.")
+            print(bcolors.SYSTEM + "  Sys: En écoute... Dites 'STOP' pour finir ce que vous avez à dire." + bcolors.ENDC)
 
             # Gardons une variable pour savoir nous en sommes où dans l'écoute de nos segments
             audio_part_index = 0
@@ -70,12 +85,13 @@ async def main():
                     # C'est notre opération de convertir la voix en texte, 
                     # ou comme on appelle en anglais le Speach-To-Text (STT)
                     text = text + " " + recognizer.recognize_google(audio, language="fr-FR")
-                    print(f"Texte reconnu: {text}")
+                    print(bcolors.SYSTEM +  f"  Sys: Texte reconnu: {text}" + bcolors.ENDC)
 
                     # Puis on regarde si le mot clé "STOP" est dans le texte reconnu
                     if "STOP" in text.upper():
                         # Si on l'a trouvé, on va arrêter l'écoute du microphone
-                        print("On arrête l'écoute...")
+                        print(bcolors.SYSTEM + "  Sys: On arrête l'écoute..." + bcolors.ENDC)
+                        print()
 
                         # On va dire que notre fonction retourne tout ce qu'il y avait comme texte de 
                         # détecté "avant" le mot clé "STOP"
@@ -85,9 +101,9 @@ async def main():
                 # Mais quand on s'essaie, c'est possible que ça ne fonctionne pas.  Si c'est le cas, on 
                 # va dire que l'on a eu un cas "d'exception" qui n'est pas ce que l'on attendait.
                 except sr.UnknownValueError:
-                    print("Exception: Could not understand audio")
+                    print(bcolors.SYSTEM + "  Sys: Exception: Could not understand audio" + bcolors.ENDC)
                 except sr.RequestError as e:
-                    print(f"Exception: Could not request results; {e}")
+                    print(bcolors.SYSTEM + f"  Sys: Exception: Could not request results; {e}" + bcolors.ENDC)
 
     # Maintenant, premier concept quand on parle à ChatGPT.  On fait des "PROMPTs", c'est à dire des messages.
     # On va se faire une liste de message que l'on s'échange.  En gros ce sont les messages de ChatGPT, les miens, ChatGPT, les miens, ...
@@ -121,7 +137,7 @@ async def main():
     while shouldContinue:
 
         # On va afficher à l'écran ce que dit Elis
-        print("ELIS> " + answer)
+        print(bcolors.ELIS + "ELIS> " + answer + bcolors.ENDC)
 
         # Et l'ajouter à la liste des messages (les PROMPTs) que l'on c'est échangé
         # On se souvient: le role assistant c'est quand c'est la réponse de ChatGPT
@@ -186,7 +202,7 @@ async def main():
 
         # Choix 2: Code pour écouter le micro plutôt que le clavier.
         question = listen_and_transcribe();
-        print("enfant> " + question)
+        print(bcolors.ENFANT + "enfant> " + question + bcolors.ENDC)
 
         # Que l'on va ajouter à notre liste de "PROMPTs" avec le role user.
         prompts.append({"role": "user", "content": question })
