@@ -94,3 +94,35 @@ Cette fonction permet d'écouter le micro et de transcrire la parole en texte ju
 ## Lancement du programme
 La dernière ligne de code lance la fonction `main()` de manière asynchrone.
 
+# Un diagramme pour s'y retrouver
+Ce diagramme résume le flux du code, en commençant par l'importation des librairies nécessaires, puis en définissant la fonction principale `main()` et la fonction `listen_and_transcribe()`. La boucle principale alterne entre l'affichage de la réponse d'Elis, la conversion en audio, la lecture de l'audio, l'écoute de la question de l'enfant, et l'envoi des messages à ChatGPT pour obtenir une réponse. Le processus se répète jusqu'à ce que l'enfant dise "quit".
+```mermaid
+graph TD
+A[Importer les librairies nécessaires] --> B[Définir la classe bcolors pour les couleurs du texte]
+B --> C[Définir la fonction principale asynchrone main]
+C --> D[Configurer le client OpenAI avec la clé API]
+D --> E[Créer un dossier d'expérience avec la date et l'heure actuelles]
+E --> F[Définir la fonction listen_and_transcribe pour écouter et transcrire l'audio]
+F --> G[Initialiser la liste des prompts et ajouter les instructions système]
+G --> H[Initialiser la variable answer avec un message de bienvenue]
+H --> I[Entrer dans la boucle principale tant que shouldContinue est vrai]
+I --> J[Afficher la réponse d'Elis et l'ajouter à la liste des prompts]
+J --> K[Séparer la réponse en phrases et initialiser l'index de partie de réponse]
+K --> L[Entrer dans la boucle pour chaque partie de réponse]
+L --> M[Convertir la partie de réponse en audio avec OpenAI]
+M --> N[Enregistrer l'audio dans un fichier]
+N --> O[Attendre que la lecture de la partie précédente soit terminée]
+O --> P[Lire la nouvelle partie audio]
+P --> Q[Incrémenter l'index de partie de réponse]
+Q --> L
+L --> R[Attendre que la dernière partie soit lue]
+R --> S[Écouter la question de l'enfant avec listen_and_transcribe]
+S --> T[Afficher la question de l'enfant et l'ajouter à la liste des prompts]
+T --> U{Vérifier si la question est quit}
+U -->|Oui| V[Mettre fin à la boucle principale]
+U -->|Non| W[Préparer les messages pour ChatGPT avec les instructions système et les prompts]
+W --> X[Envoyer les messages à ChatGPT et récupérer la réponse]
+X --> Y[Mettre à jour la variable answer avec la réponse de ChatGPT]
+Y --> I
+V --> Z[Exécuter la fonction principale main avec asyncio.run]
+```
