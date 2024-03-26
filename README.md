@@ -95,6 +95,24 @@ Cette fonction permet d'écouter le micro et de transcrire la parole en texte ju
 La dernière ligne de code lance la fonction `main()` de manière asynchrone.
 
 # Un diagramme pour s'y retrouver
+## Simplement...
+De manière très simple, l'algorithme général ressemble à ceci:
+```mermaid
+graph TD
+A[Importer les librairies nécessaires] --> B[Définir la fonction main() asynchrone]
+B --> C[Configurer le client OpenAI et créer un dossier d'expérience]
+C --> D[Définir la fonction listen_and_transcribe() pour écouter et transcrire la voix]
+D --> E[Initialiser les prompts système et la première réponse d'Elis]
+E --> F[Boucle principale de conversation]
+F --> G[Afficher la réponse d'Elis et l'ajouter aux prompts]
+G --> H[Transformer la réponse en audio et la lire phrase par phrase]
+H --> I[Écouter et transcrire la réponse de l'enfant]
+I --> J[Vérifier si l'enfant veut continuer la conversation]
+J -- Oui --> F
+J -- Non --> K[Fin du programme]
+```
+
+## ...et de manière plus complète
 Ce diagramme résume le flux du code, en commençant par l'importation des librairies nécessaires, puis en définissant la fonction principale `main()` et la fonction `listen_and_transcribe()`. La boucle principale alterne entre l'affichage de la réponse d'Elis, la conversion en audio, la lecture de l'audio, l'écoute de la question de l'enfant, et l'envoi des messages à ChatGPT pour obtenir une réponse. Le processus se répète jusqu'à ce que l'enfant dise "quit".
 ```mermaid
 graph TD
