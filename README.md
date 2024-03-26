@@ -99,9 +99,9 @@ La dernière ligne de code lance la fonction `main()` de manière asynchrone.
 De manière très simple, l'algorithme général ressemble à ceci:
 ```mermaid
 graph TD
-A[Importer les librairies nécessaires] --> B[Définir la fonction main() asynchrone]
+A[Importer les librairies nécessaires] --> B[Définir la fonction main asynchrone]
 B --> C[Configurer le client OpenAI et créer un dossier d'expérience]
-C --> D[Définir la fonction listen_and_transcribe() pour écouter et transcrire la voix]
+C --> D[Définir la fonction listen_and_transcribe pour écouter et transcrire la voix]
 D --> E[Initialiser les prompts système et la première réponse d'Elis]
 E --> F[Boucle principale de conversation]
 F --> G[Afficher la réponse d'Elis et l'ajouter aux prompts]
