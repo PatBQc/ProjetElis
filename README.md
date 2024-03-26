@@ -56,3 +56,41 @@ Ce code est un script Python qui permet d'avoir une conversation interactive ave
 - Le script s'exécute en appelant la fonction `main()` à l'aide de `asyncio.run()`.
 
 Ce script démontre l'utilisation de diverses bibliothèques Python et de l'API d'OpenAI pour créer un agent conversationnel interactif capable de communiquer par voix avec un enfant de 5 ans.
+
+## Librairies utilisées
+- `os`: pour la gestion des fichiers et répertoires
+- `openai`: pour l'utilisation de l'API d'OpenAI
+- `playsound`: pour jouer des fichiers audio
+- `datetime`: pour la gestion des dates et heures
+- `speech_recognition`: pour la reconnaissance vocale
+- `re`: pour les expressions régulières
+- `asyncio`: pour la programmation asynchrone
+
+## Classe `bcolors`
+Cette classe permet de changer les couleurs du texte dans le terminal.
+
+## Fonction `main()`
+C'est la fonction principale du programme, elle est asynchrone.
+
+### Initialisation
+- Connexion à l'API d'OpenAI avec une clé secrète
+- Création d'un répertoire pour stocker les fichiers de l'expérience
+
+### Fonction `listen_and_transcribe()`
+Cette fonction permet d'écouter le micro et de transcrire la parole en texte jusqu'à ce que le mot clé "STOP" soit prononcé.
+
+### Boucle principale
+- Initialisation de la liste des messages échangés (`prompts`)
+- Définition de la personnalité d'Elis dans les messages système
+- Boucle de discussion jusqu'à ce que l'utilisateur dise "quit"
+  - Affichage de la réponse d'Elis
+  - Découpage de la réponse en phrases
+  - Synthèse vocale de chaque phrase avec l'API d'OpenAI
+  - Écoute de la question de l'enfant (via le micro ou le clavier)
+  - Ajout de la question à la liste des messages
+  - Envoi de tous les messages à l'API d'OpenAI pour obtenir la réponse suivante
+  - Stockage de la réponse dans la variable `answer` pour la prochaine itération
+
+## Lancement du programme
+La dernière ligne de code lance la fonction `main()` de manière asynchrone.
+
