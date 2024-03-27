@@ -1,5 +1,7 @@
 # ProjetElis
-Projet pour le ExpoScience de @BelangerVincent et Attis.
+Projet pour le Défi Expo-Sciences de @BelangerVincent et Attis.
+
+Pour plus d'informations, suivez le http://toutou-elis.com/
 
 Pour le moment, vous pouvez consulter [notre documentation papier scané en PDF](docs/2023-11-21%20-%20Projet%20Mon%20ami%20Élis%20(Elis%2C%20ELI5)%20-%20Vincent%20Exposcience%20CSB.pdf) en attendant une meilleure documentation ici ;)
 
